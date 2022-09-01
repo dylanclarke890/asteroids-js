@@ -119,8 +119,9 @@ class Player {
   constructor() {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
+    this.a = (90 / 180) * Math.PI;
     this.w = 20;
-    this.h = 20;
+    this.r = this.w / 2;
     this.speed = 10;
   }
 
@@ -137,8 +138,23 @@ class Player {
   }
 
   draw() {
-    ctx.fillStyle = "grey";
-    ctx.fillRect(this.x, this.y, this.w, this.h);
+    ctx.strokeStyle = "grey";
+    ctx.lineWidth = this.w / 10;
+    ctx.beginPath();
+    ctx.moveTo(
+      this.x + this.r * Math.cos(this.a),
+      this.y - this.r * Math.sin(this.a)
+    );
+    ctx.lineTo(
+      this.x - this.r * (Math.cos(this.a) + Math.sin(this.a)),
+      this.y + this.r * (Math.sin(this.a) - Math.cos(this.a))
+    );
+    ctx.lineTo(
+      this.x - this.r * (Math.cos(this.a) - Math.sin(this.a)),
+      this.y + this.r * (Math.sin(this.a) + Math.cos(this.a))
+    );
+    ctx.closePath();
+    ctx.stroke();
   }
 }
 
