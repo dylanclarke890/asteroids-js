@@ -104,10 +104,35 @@ class Player {
   }
 
   draw() {
-    ctx.strokeStyle = "grey";
-    ctx.lineWidth = this.w / 10;
     const cosA = Math.cos(this.a);
     const sinA = Math.sin(this.a);
+    if (this.thrusting) {
+      ctx.fillStyle = "red";
+      ctx.strokeStyle = "yellow";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(
+        // rear left
+        this.x - this.r * ((2 / 3) * cosA + 0.5 * sinA),
+        this.y + this.r * ((2 / 3) * sinA - 0.5 * cosA)
+      );
+      ctx.lineTo(
+        // rear centre (behind the this)
+        this.x - ((this.r * 5) / 3) * cosA,
+        this.y + ((this.r * 5) / 3) * sinA
+      );
+      ctx.lineTo(
+        // rear right
+        this.x - this.r * ((2 / 3) * cosA - 0.5 * sinA),
+        this.y + this.r * ((2 / 3) * sinA + 0.5 * cosA)
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "grey";
+    ctx.lineWidth = this.w / 10;
     ctx.beginPath();
     ctx.moveTo(
       // nose of the ship
