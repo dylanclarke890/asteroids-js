@@ -119,11 +119,11 @@ class Player {
   constructor() {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.a = (90 / 180) * Math.PI;
+    this.a = (180 / 180) * Math.PI;
     this.turningSpeed = (3 / 180) * Math.PI;
-    this.w = 20;
+    this.w = 40;
     this.r = this.w / 2;
-    this.speed = 10;
+    this.speed = 5;
   }
 
   update() {
@@ -132,9 +132,9 @@ class Player {
     if (keyboard.forward) this.y += -this.speed;
     if (keyboard.back) this.y += this.speed;
 
-    if (this.x < 0) this.x = canvas.width - this.w;
+    if (this.x < 0) this.x = canvas.width - this.r * 2;
     if (this.x > canvas.width) this.x = 0;
-    if (this.y < 0) this.y = canvas.height - this.h;
+    if (this.y < 0) this.y = canvas.height - this.r * 2;
     if (this.y > canvas.height) this.y = 0;
   }
 
