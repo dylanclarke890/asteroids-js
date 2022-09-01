@@ -144,14 +144,14 @@ class Player {
     const cosA = Math.cos(this.a);
     const sinA = Math.sin(this.a);
     ctx.beginPath();
-    ctx.moveTo(this.x + this.r * cosA, this.y - this.r * sinA);
+    ctx.moveTo(this.x + 4 / 3 + this.r * cosA, this.y + 4 / 3 - this.r * sinA);
     ctx.lineTo(
-      this.x - this.r * (cosA + sinA),
-      this.y + this.r * (sinA - cosA)
+      this.x - this.r * ((2 / 3) * cosA + sinA),
+      this.y + this.r * ((2 / 3) * sinA - cosA)
     );
     ctx.lineTo(
-      this.x - this.r * (cosA - sinA),
-      this.y + this.r * (sinA + cosA)
+      this.x - this.r * ((2 / 3) * cosA - sinA),
+      this.y + this.r * ((2 / 3) * sinA + cosA)
     );
     ctx.closePath();
     ctx.stroke();
