@@ -129,6 +129,11 @@ class Player {
     if (keyboard.right) this.x += this.speed;
     if (keyboard.forward) this.y += -this.speed;
     if (keyboard.back) this.y += this.speed;
+
+    if (this.x < 0) this.x = canvas.width - this.w;
+    if (this.x > canvas.width) this.x = 0;
+    if (this.y < 0) this.y = canvas.height - this.h;
+    if (this.y > canvas.height) this.y = 0;
   }
 
   draw() {
