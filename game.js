@@ -54,6 +54,14 @@ const mouse = {
   h: 0.1,
 };
 
+const keyboard = {
+  left: false,
+  right: false,
+  forward: false,
+  back: false,
+  shooting: false,
+};
+
 const setMousePosition = (e) => {
   mouse.x = e.x - (canvasPosition.left + 6);
   mouse.y = e.y - canvasPosition.top;
@@ -65,6 +73,46 @@ canvas.addEventListener("mousemove", (e) => {
 
 window.addEventListener("resize", () => {
   canvasPosition = canvas.getBoundingClientRect();
+});
+
+window.addEventListener("keydown", (e) => {
+  switch (e.code.toLowerCase()) {
+    case "arrowleft":
+      keyboard.left = true;
+      break;
+    case "arrowright":
+      keyboard.right = true;
+      break;
+    case "arrowup":
+      keyboard.forward = true;
+      break;
+    case "arrowdown":
+      keyboard.back = true;
+      break;
+    case "space":
+      keyboard.shooting = true;
+      break;
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  switch (e.code.toLowerCase()) {
+    case "arrowleft":
+      keyboard.left = false;
+      break;
+    case "arrowright":
+      keyboard.right = false;
+      break;
+    case "arrowup":
+      keyboard.forward = false;
+      break;
+    case "arrowdown":
+      keyboard.back = false;
+      break;
+    case "space":
+      keyboard.shooting = false;
+      break;
+  }
 });
 
 class Player {
