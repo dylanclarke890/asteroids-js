@@ -83,12 +83,15 @@ class Player {
   }
 
   update() {
-    const { fps, shipThrust } = settings;
+    const { fps, shipThrust, friction } = settings;
     this.a += this.rot;
 
     if (this.thrusting) {
       this.thrust.x += (shipThrust * Math.cos(this.a)) / fps;
       this.thrust.y -= (shipThrust * Math.sin(this.a)) / fps;
+    } else {
+      this.thrust.x -= friction * this.thrust.x / fps;
+      this.thrust.y -= friction * this.thrust.y / fps;
     }
 
     this.x += this.thrust.x;
