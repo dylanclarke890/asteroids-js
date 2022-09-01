@@ -140,18 +140,17 @@ class Player {
   draw() {
     ctx.strokeStyle = "grey";
     ctx.lineWidth = this.w / 10;
+    const cosA = Math.cos(this.a);
+    const sinA = Math.sin(this.a);
     ctx.beginPath();
-    ctx.moveTo(
-      this.x + this.r * Math.cos(this.a),
-      this.y - this.r * Math.sin(this.a)
+    ctx.moveTo(this.x + this.r * cosA, this.y - this.r * sinA);
+    ctx.lineTo(
+      this.x - this.r * (cosA + sinA),
+      this.y + this.r * (sinA - cosA)
     );
     ctx.lineTo(
-      this.x - this.r * (Math.cos(this.a) + Math.sin(this.a)),
-      this.y + this.r * (Math.sin(this.a) - Math.cos(this.a))
-    );
-    ctx.lineTo(
-      this.x - this.r * (Math.cos(this.a) - Math.sin(this.a)),
-      this.y + this.r * (Math.sin(this.a) + Math.cos(this.a))
+      this.x - this.r * (cosA - sinA),
+      this.y + this.r * (sinA + cosA)
     );
     ctx.closePath();
     ctx.stroke();
