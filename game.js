@@ -61,10 +61,6 @@ const setMousePosition = (e) => {
 
 canvas.addEventListener("mousemove", (e) => {
   setMousePosition(e);
-  settings.actionButton.hover = isRectRectColliding(
-    mouse,
-    settings.actionButton
-  );
 });
 
 window.addEventListener("resize", () => {
@@ -79,8 +75,25 @@ class Player {
     this.h = 20;
   }
 
+  update() {}
+
   draw() {
     ctx.fillStyle = "grey";
     ctx.fillRect(this.x, this.y, this.w, this.h);
   }
 }
+
+const state = {
+  player: new Player(),
+};
+
+function handleObjects() {
+  state.player.update();
+  state.player.draw();
+}
+
+(function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  handleObjects();
+  requestAnimationFrame(animate);
+})();
