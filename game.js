@@ -97,10 +97,10 @@ class Player {
     this.x += this.thrust.x;
     this.y += this.thrust.y;
 
-    if (this.x < 0) this.x = canvas.width - this.r * 2;
-    if (this.x > canvas.width) this.x = 0;
-    if (this.y < 0) this.y = canvas.height - this.r * 2;
-    if (this.y > canvas.height) this.y = 0;
+    if (this.x < 0 - this.r) this.x = canvas.width + this.r;
+    else if (this.x > canvas.width + this.r) this.x = 0 - this.r;
+    if (this.y < 0 - this.r) this.y = canvas.height + this.r;
+    else if (this.y > canvas.height + this.r) this.y = 0 - this.r;
   }
 
   draw() {
