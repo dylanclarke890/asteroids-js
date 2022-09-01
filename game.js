@@ -70,3 +70,17 @@ canvas.addEventListener("mousemove", (e) => {
 window.addEventListener("resize", () => {
   canvasPosition = canvas.getBoundingClientRect();
 });
+
+class Player {
+  constructor() {
+    this.x = canvas.width / 2;
+    this.y = canvas.height / 2;
+    this.w = 20;
+    this.h = 20;
+  }
+
+  draw() {
+    ctx.fillStyle = "grey";
+    ctx.fillRect(this.x, this.y, this.w, this.h);
+  }
+}
