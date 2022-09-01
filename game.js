@@ -121,9 +121,15 @@ class Player {
     this.y = canvas.height / 2;
     this.w = 20;
     this.h = 20;
+    this.speed = 10;
   }
 
-  update() {}
+  update() {
+    if (keyboard.left) this.x += -this.speed;
+    if (keyboard.right) this.x += this.speed;
+    if (keyboard.forward) this.y += -this.speed;
+    if (keyboard.back) this.y += this.speed;
+  }
 
   draw() {
     ctx.fillStyle = "grey";
