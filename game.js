@@ -119,18 +119,23 @@ class Player {
   constructor() {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.a = (180 / 180) * Math.PI;
-    this.turningSpeed = (3 / 180) * Math.PI;
     this.w = 40;
     this.r = this.w / 2;
+    this.a = (180 / 180) * Math.PI;
+    this.rot = 0;
     this.speed = 5;
   }
 
   update() {
-    if (keyboard.left) this.a += this.turningSpeed;
-    if (keyboard.right) this.a += -this.turningSpeed;
-    if (keyboard.forward) this.y += -this.speed;
-    if (keyboard.back) this.y += this.speed;
+    const { turnSpeed, fps } = settings;
+    this.rot = keyboard.right
+      ? ((-turnSpeed / 180) * Math.PI) / fps
+      : keyboard.left
+      ? ((turnSpeed / 180) * Math.PI) / fps
+      : 0;
+    this.a += this.rot;
+    if (keyboard.forward) this.y += this.speed;
+    if (keyboard.back) this.y += -this.speed;
 
     if (this.x < 0) this.x = canvas.width - this.r * 2;
     if (this.x > canvas.width) this.x = 0;
@@ -166,6 +171,7 @@ const FPS = 60;
 const settings = {
   fps: FPS,
   fpsInterval: 1000 / FPS,
+  turnSpeed: 360, // degrees per second
 };
 
 function handleObjects() {
