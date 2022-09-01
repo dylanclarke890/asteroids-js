@@ -120,14 +120,15 @@ class Player {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
     this.a = (90 / 180) * Math.PI;
+    this.turningSpeed = (3 / 180) * Math.PI;
     this.w = 20;
     this.r = this.w / 2;
     this.speed = 10;
   }
 
   update() {
-    if (keyboard.left) this.x += -this.speed;
-    if (keyboard.right) this.x += this.speed;
+    if (keyboard.left) this.a += this.turningSpeed;
+    if (keyboard.right) this.a += -this.turningSpeed;
     if (keyboard.forward) this.y += -this.speed;
     if (keyboard.back) this.y += this.speed;
 
