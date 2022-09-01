@@ -54,14 +54,6 @@ const mouse = {
   h: 0.1,
 };
 
-const keyboard = {
-  left: false,
-  right: false,
-  forward: false,
-  back: false,
-  shooting: false,
-};
-
 const setMousePosition = (e) => {
   mouse.x = e.x - (canvasPosition.left + 6);
   mouse.y = e.y - canvasPosition.top;
@@ -75,46 +67,6 @@ window.addEventListener("resize", () => {
   canvasPosition = canvas.getBoundingClientRect();
 });
 
-window.addEventListener("keydown", (e) => {
-  switch (e.code.toLowerCase()) {
-    case "arrowleft":
-      keyboard.left = true;
-      break;
-    case "arrowright":
-      keyboard.right = true;
-      break;
-    case "arrowup":
-      keyboard.forward = true;
-      break;
-    case "arrowdown":
-      keyboard.back = true;
-      break;
-    case "space":
-      keyboard.shooting = true;
-      break;
-  }
-});
-
-window.addEventListener("keyup", (e) => {
-  switch (e.code.toLowerCase()) {
-    case "arrowleft":
-      keyboard.left = false;
-      break;
-    case "arrowright":
-      keyboard.right = false;
-      break;
-    case "arrowup":
-      keyboard.forward = false;
-      break;
-    case "arrowdown":
-      keyboard.back = false;
-      break;
-    case "space":
-      keyboard.shooting = false;
-      break;
-  }
-});
-
 class Player {
   constructor() {
     this.x = canvas.width / 2;
@@ -123,19 +75,24 @@ class Player {
     this.r = this.w / 2;
     this.a = (180 / 180) * Math.PI;
     this.rot = 0;
-    this.speed = 5;
+    this.thrusting = false;
+    this.thrust = {
+      x: 0,
+      y: 0,
+    };
   }
 
   update() {
-    const { turnSpeed, fps } = settings;
-    this.rot = keyboard.right
-      ? ((-turnSpeed / 180) * Math.PI) / fps
-      : keyboard.left
-      ? ((turnSpeed / 180) * Math.PI) / fps
-      : 0;
+    const { fps, shipThrust } = settings;
     this.a += this.rot;
-    if (keyboard.forward) this.y += this.speed;
-    if (keyboard.back) this.y += -this.speed;
+
+    if (this.thrusting) {
+      this.thrust.x += (shipThrust * Math.cos(this.a)) / fps;
+      this.thrust.y -= (shipThrust * Math.sin(this.a)) / fps;
+    }
+
+    this.x += this.thrust.x;
+    this.y += this.thrust.y;
 
     if (this.x < 0) this.x = canvas.width - this.r * 2;
     if (this.x > canvas.width) this.x = 0;
@@ -149,12 +106,18 @@ class Player {
     const cosA = Math.cos(this.a);
     const sinA = Math.sin(this.a);
     ctx.beginPath();
-    ctx.moveTo(this.x + 4 / 3 + this.r * cosA, this.y + 4 / 3 - this.r * sinA);
+    ctx.moveTo(
+      // nose of the ship
+      this.x + (4 / 3) * this.r * cosA,
+      this.y - (4 / 3) * this.r * sinA
+    );
     ctx.lineTo(
+      // rear left
       this.x - this.r * ((2 / 3) * cosA + sinA),
       this.y + this.r * ((2 / 3) * sinA - cosA)
     );
     ctx.lineTo(
+      // rear right
       this.x - this.r * ((2 / 3) * cosA - sinA),
       this.y + this.r * ((2 / 3) * sinA + cosA)
     );
@@ -172,7 +135,44 @@ const settings = {
   fps: FPS,
   fpsInterval: 1000 / FPS,
   turnSpeed: 360, // degrees per second
+  shipThrust: 5,
+  friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
 };
+
+window.addEventListener("keydown", keyDown);
+window.addEventListener("keyup", keyUp);
+
+function keyDown(/** @type {KeyboardEvent} */ ev) {
+  const { turnSpeed, fps } = settings;
+  switch (ev.code.toLowerCase()) {
+    case "arrowleft":
+      state.player.rot = ((turnSpeed / 180) * Math.PI) / fps;
+      break;
+    case "arrowright":
+      state.player.rot = ((-turnSpeed / 180) * Math.PI) / fps;
+      break;
+    case "arrowup":
+      state.player.thrusting = true;
+      break;
+    default:
+      break;
+  }
+}
+function keyUp(/** @type {KeyboardEvent} */ ev) {
+  switch (ev.code.toLowerCase()) {
+    case "arrowleft":
+      state.player.rot = 0;
+      break;
+    case "arrowright":
+      state.player.rot = 0;
+      break;
+    case "arrowup":
+      state.player.thrusting = false;
+      break;
+    default:
+      break;
+  }
+}
 
 function handleObjects() {
   state.player.update();
