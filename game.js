@@ -172,6 +172,12 @@ class Asteroid {
     this.vert = Math.floor(
       Math.random() * (asteroids.vert + 1) + asteroids.vert / 2
     );
+    this.vertOffsets = [];
+    for (let i = 0; i < this.vert; i++) {
+      this.vertOffsets.push(
+        Math.random() * asteroids.jag * 2 + 1 - asteroids.jag
+      );
+    }
   }
 
   update() {}
@@ -182,14 +188,20 @@ class Asteroid {
     // draw the path
     ctx.beginPath();
     ctx.moveTo(
-      this.x + this.r * Math.cos(this.a),
-      this.y + this.r * Math.sin(this.a)
+      this.x + this.r * this.vertOffsets[0] * Math.cos(this.a),
+      this.y + this.r * this.vertOffsets[0] * Math.sin(this.a)
     );
     // draw the polygon
-    for (let j = 0; j < this.vert; j++) {
+    for (let j = 1; j < this.vert; j++) {
       ctx.lineTo(
-        this.x + this.r * Math.cos(this.a + (j * Math.PI * 2) / this.vert),
-        this.y + this.r * Math.sin(this.a + (j * Math.PI * 2) / this.vert)
+        this.x +
+          this.r *
+            this.vertOffsets[j] *
+            Math.cos(this.a + (j * Math.PI * 2) / this.vert),
+        this.y +
+          this.r *
+            this.vertOffsets[j] *
+            Math.sin(this.a + (j * Math.PI * 2) / this.vert)
       );
     }
     ctx.closePath();
@@ -206,14 +218,15 @@ const FPS = 60;
 const settings = {
   fps: FPS,
   fpsInterval: 1000 / FPS,
-  turnSpeed: 360, // degrees per second
+  turnSpeed: 360, // degrees per second.
   shipThrust: 5,
   friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
   asteroids: {
     startingNum: 3,
-    speed: 50, // max starting speed of asteroids in pixels per second
+    speed: 50, // max starting speed of asteroids in pixels per second.
     size: 100,
     vert: 10,
+    jag: 0.4, // jaggedness of the asteroids (0 - 1).
   },
 };
 
