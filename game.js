@@ -56,16 +56,20 @@ const mouse = {
 
 const FPS = 60;
 const settings = {
+  fps: FPS,
+  fpsInterval: 1000 / FPS,
   devMode: {
     showCenterDot: false,
     showCollisionBounding: false,
   },
-  fps: FPS,
-  fpsInterval: 1000 / FPS,
-  turnSpeed: 360, // degrees per second.
-  shipExplodeDuration: 0.3, // duration of explosion in seconds.
-  shipThrust: 5,
-  friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
+  ship: {
+    blinkDuration: 0.1, // duration of blink in seconds.
+    explodeDuration: 0.3, // duration of explosion in seconds.
+    invDuration: 3, // duration of invisibility in seconds.
+    friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
+    thrust: 5,
+    turnSpeed: 360, // degrees per second.
+  },
   asteroids: {
     startingNum: 3,
     speed: 50, // max starting speed of asteroids in pixels per second.
@@ -102,16 +106,21 @@ class Player {
       y: 0,
     };
     this.explodeTime = 0;
+    const { ship, fps } = settings;
+    this.blinkNum = Math.ceil(ship.invDuration / ship.blinkDuration);
+    this.blinkTime = Math.ceil(ship.blinkDuration * fps);
   }
 
   update() {
-    const { fps, shipThrust, friction } = settings;
+    const { fps, ship } = settings;
+    const { thrust, friction } = ship;
+    const exploding = this.explodeTime > 0;
 
-    if (this.explodeTime === 0) {
+    if (!exploding) {
       this.a += this.rot;
       if (this.thrusting) {
-        this.thrust.x += (shipThrust * Math.cos(this.a)) / fps;
-        this.thrust.y -= (shipThrust * Math.sin(this.a)) / fps;
+        this.thrust.x += (thrust * Math.cos(this.a)) / fps;
+        this.thrust.y -= (thrust * Math.sin(this.a)) / fps;
       } else {
         this.thrust.x -= (friction * this.thrust.x) / fps;
         this.thrust.y -= (friction * this.thrust.y) / fps;
@@ -140,13 +149,23 @@ class Player {
     else if (this.x > canvas.width + this.r) this.x = 0 - this.r;
     if (this.y < 0 - this.r) this.y = canvas.height + this.r;
     else if (this.y > canvas.height + this.r) this.y = 0 - this.r;
+
+    if (this.blinkNum > 0) {
+      this.blinkTime--;
+
+      if (this.blinkTime === 0) {
+        this.blinkTime = Math.ceil(ship.blinkDuration * fps);
+        this.blinkNum--;
+      }
+    }
   }
 
   draw() {
     const cosA = Math.cos(this.a);
     const sinA = Math.sin(this.a);
 
-    if (this.explodeTime > 0) {
+    const exploding = this.explodeTime > 0;
+    if (exploding) {
       ctx.fillStyle = "darkred";
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r * 1.7, 0, Math.PI * 2, false);
@@ -204,26 +223,29 @@ class Player {
       ctx.stroke();
     }
 
-    ctx.strokeStyle = "grey";
-    ctx.lineWidth = this.w / 10;
-    ctx.beginPath();
-    ctx.moveTo(
-      // nose of the ship
-      this.x + (4 / 3) * this.r * cosA,
-      this.y - (4 / 3) * this.r * sinA
-    );
-    ctx.lineTo(
-      // rear left
-      this.x - this.r * ((2 / 3) * cosA + sinA),
-      this.y + this.r * ((2 / 3) * sinA - cosA)
-    );
-    ctx.lineTo(
-      // rear right
-      this.x - this.r * ((2 / 3) * cosA - sinA),
-      this.y + this.r * ((2 / 3) * sinA + cosA)
-    );
-    ctx.closePath();
-    ctx.stroke();
+    const blinkOn = this.blinkNum % 2 === 0;
+    if (blinkOn) {
+      ctx.strokeStyle = "grey";
+      ctx.lineWidth = this.w / 10;
+      ctx.beginPath();
+      ctx.moveTo(
+        // nose of the ship
+        this.x + (4 / 3) * this.r * cosA,
+        this.y - (4 / 3) * this.r * sinA
+      );
+      ctx.lineTo(
+        // rear left
+        this.x - this.r * ((2 / 3) * cosA + sinA),
+        this.y + this.r * ((2 / 3) * sinA - cosA)
+      );
+      ctx.lineTo(
+        // rear right
+        this.x - this.r * ((2 / 3) * cosA - sinA),
+        this.y + this.r * ((2 / 3) * sinA + cosA)
+      );
+      ctx.closePath();
+      ctx.stroke();
+    }
 
     const { showCenterDot: showShipCenterDot, showCollisionBounding } =
       settings.devMode;
@@ -243,16 +265,8 @@ class Player {
   }
 
   explode() {
-    const { fps, shipExplodeDuration } = settings;
-    this.explodeTime = Math.ceil(shipExplodeDuration * fps);
-    ctx.strokeStyle = "lime";
-    ctx.fillStyle = "lime";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, false);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fill();
+    const { fps, ship } = settings;
+    this.explodeTime = Math.ceil(ship.explodeDuration * fps);
   }
 
   reset() {
@@ -268,6 +282,9 @@ class Player {
       y: 0,
     };
     this.explodeTime = 0;
+    const { ship, fps } = settings;
+    this.blinkNum = Math.ceil(ship.invDuration / ship.blinkDuration);
+    this.blinkTime = Math.ceil(ship.blinkDuration * fps);
   }
 }
 
@@ -358,13 +375,13 @@ window.addEventListener("keydown", keyDown);
 window.addEventListener("keyup", keyUp);
 
 function keyDown(/** @type {KeyboardEvent} */ ev) {
-  const { turnSpeed, fps } = settings;
+  const { ship, fps } = settings;
   switch (ev.code.toLowerCase()) {
     case "arrowleft":
-      state.player.rot = ((turnSpeed / 180) * Math.PI) / fps;
+      state.player.rot = ((ship.turnSpeed / 180) * Math.PI) / fps;
       break;
     case "arrowright":
-      state.player.rot = ((-turnSpeed / 180) * Math.PI) / fps;
+      state.player.rot = ((-ship.turnSpeed / 180) * Math.PI) / fps;
       break;
     case "arrowup":
       state.player.thrusting = true;
