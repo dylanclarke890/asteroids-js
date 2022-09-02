@@ -107,32 +107,34 @@ class Player {
   update() {
     const { fps, shipThrust, friction } = settings;
 
-    for (let i = 0; i < state.asteroids.length; i++) {
-      if (
-        distanceBetweenPoints(
-          this.x,
-          this.y,
-          state.asteroids[i].x,
-          state.asteroids[i].y
-        ) <
-        this.r + state.asteroids[i].r
-      ) {
-        this.explode();
+    if (this.explodeTime === 0) {
+      this.a += this.rot;
+      if (this.thrusting) {
+        this.thrust.x += (shipThrust * Math.cos(this.a)) / fps;
+        this.thrust.y -= (shipThrust * Math.sin(this.a)) / fps;
+      } else {
+        this.thrust.x -= (friction * this.thrust.x) / fps;
+        this.thrust.y -= (friction * this.thrust.y) / fps;
       }
-    }
+      this.x += this.thrust.x;
+      this.y += this.thrust.y;
 
-    this.a += this.rot;
-
-    if (this.thrusting) {
-      this.thrust.x += (shipThrust * Math.cos(this.a)) / fps;
-      this.thrust.y -= (shipThrust * Math.sin(this.a)) / fps;
+      for (let i = 0; i < state.asteroids.length; i++) {
+        if (
+          distanceBetweenPoints(
+            this.x,
+            this.y,
+            state.asteroids[i].x,
+            state.asteroids[i].y
+          ) <
+          this.r + state.asteroids[i].r
+        )
+          this.explode();
+      }
     } else {
-      this.thrust.x -= (friction * this.thrust.x) / fps;
-      this.thrust.y -= (friction * this.thrust.y) / fps;
+      this.explodeTime--;
+      if (this.explodeTime === 0) this.reset();
     }
-
-    this.x += this.thrust.x;
-    this.y += this.thrust.y;
 
     if (this.x < 0 - this.r) this.x = canvas.width + this.r;
     else if (this.x > canvas.width + this.r) this.x = 0 - this.r;
@@ -251,6 +253,21 @@ class Player {
     ctx.closePath();
     ctx.stroke();
     ctx.fill();
+  }
+
+  reset() {
+    this.x = canvas.width / 2;
+    this.y = canvas.height / 2;
+    this.w = 40;
+    this.r = this.w / 2;
+    this.a = (180 / 180) * Math.PI;
+    this.rot = 0;
+    this.thrusting = false;
+    this.thrust = {
+      x: 0,
+      y: 0,
+    };
+    this.explodeTime = 0;
   }
 }
 
