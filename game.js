@@ -180,7 +180,15 @@ class Asteroid {
     }
   }
 
-  update() {}
+  update() {
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+
+    if (this.x < 0 - this.r) this.x = canvas.width + this.r;
+    else if (this.x > canvas.width + this.r) this.x = 0 - this.r;
+    if (this.y < 0 - this.r) this.y = canvas.height + this.r;
+    else if (this.y > canvas.height + this.r) this.y = 0 - this.r;
+  }
   draw() {
     ctx.closePath;
     ctx.strokeStyle = "slategrey";
