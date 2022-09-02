@@ -90,8 +90,8 @@ class Player {
       this.thrust.x += (shipThrust * Math.cos(this.a)) / fps;
       this.thrust.y -= (shipThrust * Math.sin(this.a)) / fps;
     } else {
-      this.thrust.x -= friction * this.thrust.x / fps;
-      this.thrust.y -= friction * this.thrust.y / fps;
+      this.thrust.x -= (friction * this.thrust.x) / fps;
+      this.thrust.y -= (friction * this.thrust.y) / fps;
     }
 
     this.x += this.thrust.x;
@@ -151,6 +151,11 @@ class Player {
     );
     ctx.closePath();
     ctx.stroke();
+
+    if (settings.devMode.showShipCenterDot) {
+      ctx.fillStyle = "red";
+      ctx.fillRect(this.x - 1, this.y - 1, 2, 2);
+    }
   }
 }
 
@@ -224,6 +229,10 @@ const state = {
 
 const FPS = 60;
 const settings = {
+  devMode: {
+    showShipCenterDot: true,
+    showBoundingBox: false,
+  },
   fps: FPS,
   fpsInterval: 1000 / FPS,
   turnSpeed: 360, // degrees per second.
