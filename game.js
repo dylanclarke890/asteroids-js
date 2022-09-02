@@ -128,17 +128,19 @@ class Player {
       this.x += this.thrust.x;
       this.y += this.thrust.y;
 
-      for (let i = 0; i < state.asteroids.length; i++) {
-        if (
-          distanceBetweenPoints(
-            this.x,
-            this.y,
-            state.asteroids[i].x,
-            state.asteroids[i].y
-          ) <
-          this.r + state.asteroids[i].r
-        )
-          this.explode();
+      if (this.blinkNum === 0) {
+        for (let i = 0; i < state.asteroids.length; i++) {
+          if (
+            distanceBetweenPoints(
+              this.x,
+              this.y,
+              state.asteroids[i].x,
+              state.asteroids[i].y
+            ) <
+            this.r + state.asteroids[i].r
+          )
+            this.explode();
+        }
       }
     } else {
       this.explodeTime--;
@@ -198,7 +200,8 @@ class Player {
       return;
     }
 
-    if (this.thrusting) {
+    const blinkOn = this.blinkNum % 2 === 0;
+    if (this.thrusting && blinkOn) {
       ctx.fillStyle = "red";
       ctx.strokeStyle = "yellow";
       ctx.lineWidth = 5;
@@ -223,7 +226,6 @@ class Player {
       ctx.stroke();
     }
 
-    const blinkOn = this.blinkNum % 2 === 0;
     if (blinkOn) {
       ctx.strokeStyle = "grey";
       ctx.lineWidth = this.w / 10;
