@@ -152,9 +152,20 @@ class Player {
     ctx.closePath();
     ctx.stroke();
 
-    if (settings.devMode.showShipCenterDot) {
+    const { showCenterDot: showShipCenterDot, showCollisionBounding } =
+      settings.devMode;
+    if (showShipCenterDot) {
       ctx.fillStyle = "red";
       ctx.fillRect(this.x - 1, this.y - 1, 2, 2);
+    }
+
+    if (showCollisionBounding) {
+      ctx.strokeStyle = "lime";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.stroke();
     }
   }
 }
@@ -219,6 +230,21 @@ class Asteroid {
     }
     ctx.closePath();
     ctx.stroke();
+
+    const { showCenterDot, showCollisionBounding } = settings.devMode;
+    if (showCenterDot) {
+      ctx.fillStyle = "red";
+      ctx.fillRect(this.x - 1, this.y - 1, 2, 2);
+    }
+
+    if (showCollisionBounding) {
+      ctx.strokeStyle = "lime";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.stroke();
+    }
   }
 }
 
@@ -230,8 +256,8 @@ const state = {
 const FPS = 60;
 const settings = {
   devMode: {
-    showShipCenterDot: true,
-    showBoundingBox: false,
+    showCenterDot: true,
+    showCollisionBounding: true,
   },
   fps: FPS,
   fpsInterval: 1000 / FPS,
