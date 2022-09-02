@@ -70,6 +70,10 @@ const settings = {
     thrust: 5,
     turnSpeed: 360, // degrees per second.
   },
+  lasers: {
+    speed: 500, // pixels per second
+    maxAtOnce: 8,
+  },
   asteroids: {
     startingNum: 3,
     speed: 50, // max starting speed of asteroids in pixels per second.
@@ -92,6 +96,28 @@ window.addEventListener("resize", () => {
   canvasPosition = canvas.getBoundingClientRect();
 });
 
+class Laser {
+  constructor(x, y, velocity) {
+    this.x = x;
+    this.y = y;
+    this.velocity = velocity;
+    this.w = 5;
+    this.h = 20;
+  }
+
+  draw() {
+    ctx.fillStyle = "salmon";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
+  }
+  update() {
+    this.x += this.velocity.x;
+    this.y -= this.velocity.y;
+  }
+}
+
 class Player {
   constructor() {
     this.x = canvas.width / 2;
@@ -109,10 +135,12 @@ class Player {
     const { ship, fps } = settings;
     this.blinkNum = Math.ceil(ship.invDuration / ship.blinkDuration);
     this.blinkTime = Math.ceil(ship.blinkDuration * fps);
+    this.canShoot = true;
+    this.lasers = [];
   }
 
   update() {
-    const { fps, ship } = settings;
+    const { fps, ship, lasers } = settings;
     const { thrust, friction } = ship;
     const exploding = this.explodeTime > 0;
 
@@ -249,9 +277,8 @@ class Player {
       ctx.stroke();
     }
 
-    const { showCenterDot: showShipCenterDot, showCollisionBounding } =
-      settings.devMode;
-    if (showShipCenterDot) {
+    const { showCenterDot, showCollisionBounding } = settings.devMode;
+    if (showCenterDot) {
       ctx.fillStyle = "red";
       ctx.fillRect(this.x - 1, this.y - 1, 2, 2);
     }
@@ -287,6 +314,26 @@ class Player {
     const { ship, fps } = settings;
     this.blinkNum = Math.ceil(ship.invDuration / ship.blinkDuration);
     this.blinkTime = Math.ceil(ship.blinkDuration * fps);
+    this.canShoot = true;
+    this.lasers = [];
+  }
+
+  shootLaser() {
+    const { maxAtOnce, speed } = settings.lasers;
+    if (!this.canShoot || this.lasers.length >= maxAtOnce) return;
+    const cosA = Math.cos(this.a);
+    const sinA = Math.sin(this.a);
+    this.lasers.push(
+      new Laser(
+        this.x + (4 / 3) * this.r * cosA,
+        this.y - (4 / 3) * this.r * sinA,
+        {
+          x: (speed * cosA) / settings.fps,
+          y: (speed * sinA) / settings.fps,
+        }
+      )
+    );
+    this.canShoot = false;
   }
 }
 
@@ -388,6 +435,9 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
     case "arrowup":
       state.player.thrusting = true;
       break;
+    case "space":
+      state.player.shootLaser();
+      break;
     default:
       break;
   }
@@ -402,6 +452,9 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
       break;
     case "arrowup":
       state.player.thrusting = false;
+      break;
+    case "space":
+      state.player.canShoot = true;
       break;
     default:
       break;
@@ -430,6 +483,11 @@ function distanceBetweenPoints(x1, y1, x2, y2) {
 function handleObjects() {
   state.player.update();
   state.player.draw();
+
+  for (let i = 0; i < state.player.lasers.length; i++) {
+    state.player.lasers[i].update();
+    state.player.lasers[i].draw();
+  }
 
   for (let i = 0; i < state.asteroids.length; i++) {
     state.asteroids[i].update();
