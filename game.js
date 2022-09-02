@@ -253,13 +253,23 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
 }
 
 (function createAsteroidBelt() {
-  const { startingNum } = settings.asteroids;
+  const { startingNum, size } = settings.asteroids;
+  let x, y;
   for (let i = 0; i < startingNum; i++) {
-    const x = Math.floor(Math.random() * canvas.width);
-    const y = Math.floor(Math.random() * canvas.height);
+    do {
+      x = Math.floor(Math.random() * canvas.width);
+      y = Math.floor(Math.random() * canvas.height);
+    } while (
+      distanceBetweenPoints(state.player.x, state.player.y, x, y) <
+      size * 2 + state.player.r
+    );
     state.asteroids.push(new Asteroid(x, y));
   }
 })();
+
+function distanceBetweenPoints(x1, y1, x2, y2) {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
 
 function handleObjects() {
   state.player.update();
