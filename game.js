@@ -166,13 +166,35 @@ class Asteroid {
       y:
         ((Math.random() * asteroids.speed) / fps) *
         (Math.random() > 0.5 ? 1 : -1),
-      r: asteroids.size / 2,
-      a: Math.random() * Math.PI * 2, // angle in radians
     };
+    this.r = asteroids.size / 2;
+    this.a = Math.random() * Math.PI * 2; // angle in radians
+    this.vert = Math.floor(
+      Math.random() * (asteroids.vert + 1) + asteroids.vert / 2
+    );
   }
 
   update() {}
-  draw() {}
+  draw() {
+    ctx.closePath;
+    ctx.strokeStyle = "slategrey";
+    ctx.lineWidth = 3;
+    // draw the path
+    ctx.beginPath();
+    ctx.moveTo(
+      this.x + this.r * Math.cos(this.a),
+      this.y + this.r * Math.sin(this.a)
+    );
+    // draw the polygon
+    for (let j = 0; j < this.vert; j++) {
+      ctx.lineTo(
+        this.x + this.r * Math.cos(this.a + (j * Math.PI * 2) / this.vert),
+        this.y + this.r * Math.sin(this.a + (j * Math.PI * 2) / this.vert)
+      );
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
 }
 
 const state = {
@@ -191,6 +213,7 @@ const settings = {
     startingNum: 3,
     speed: 50, // max starting speed of asteroids in pixels per second
     size: 100,
+    vert: 10,
   },
 };
 
@@ -241,6 +264,7 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
 function handleObjects() {
   state.player.update();
   state.player.draw();
+
   for (let i = 0; i < state.asteroids.length; i++) {
     state.asteroids[i].update();
     state.asteroids[i].draw();
