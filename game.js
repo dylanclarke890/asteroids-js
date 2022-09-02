@@ -54,6 +54,27 @@ const mouse = {
   h: 0.1,
 };
 
+const FPS = 60;
+const settings = {
+  devMode: {
+    showCenterDot: false,
+    showCollisionBounding: false,
+  },
+  fps: FPS,
+  fpsInterval: 1000 / FPS,
+  turnSpeed: 360, // degrees per second.
+  shipExplodeDuration: 0.3, // duration of explosion in seconds.
+  shipThrust: 5,
+  friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
+  asteroids: {
+    startingNum: 3,
+    speed: 50, // max starting speed of asteroids in pixels per second.
+    size: 100,
+    vert: 10,
+    jag: 0.4, // jaggedness of the asteroids (0 - 1).
+  },
+};
+
 const setMousePosition = (e) => {
   mouse.x = e.x - (canvasPosition.left + 6);
   mouse.y = e.y - canvasPosition.top;
@@ -80,10 +101,26 @@ class Player {
       x: 0,
       y: 0,
     };
+    this.explodeTime = 0;
   }
 
   update() {
     const { fps, shipThrust, friction } = settings;
+
+    for (let i = 0; i < state.asteroids.length; i++) {
+      if (
+        distanceBetweenPoints(
+          this.x,
+          this.y,
+          state.asteroids[i].x,
+          state.asteroids[i].y
+        ) <
+        this.r + state.asteroids[i].r
+      ) {
+        this.explode();
+      }
+    }
+
     this.a += this.rot;
 
     if (this.thrusting) {
@@ -106,6 +143,40 @@ class Player {
   draw() {
     const cosA = Math.cos(this.a);
     const sinA = Math.sin(this.a);
+
+    if (this.explodeTime > 0) {
+      ctx.fillStyle = "darkred";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * 1.7, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * 1.4, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "orange";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * 1.1, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * 0.8, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * 0.5, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+
     if (this.thrusting) {
       ctx.fillStyle = "red";
       ctx.strokeStyle = "yellow";
@@ -167,6 +238,19 @@ class Player {
       ctx.closePath();
       ctx.stroke();
     }
+  }
+
+  explode() {
+    const { fps, shipExplodeDuration } = settings;
+    this.explodeTime = Math.ceil(shipExplodeDuration * fps);
+    ctx.strokeStyle = "lime";
+    ctx.fillStyle = "lime";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, false);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
   }
 }
 
@@ -251,26 +335,6 @@ class Asteroid {
 const state = {
   player: new Player(),
   asteroids: [],
-};
-
-const FPS = 60;
-const settings = {
-  devMode: {
-    showCenterDot: true,
-    showCollisionBounding: true,
-  },
-  fps: FPS,
-  fpsInterval: 1000 / FPS,
-  turnSpeed: 360, // degrees per second.
-  shipThrust: 5,
-  friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
-  asteroids: {
-    startingNum: 3,
-    speed: 50, // max starting speed of asteroids in pixels per second.
-    size: 100,
-    vert: 10,
-    jag: 0.4, // jaggedness of the asteroids (0 - 1).
-  },
 };
 
 window.addEventListener("keydown", keyDown);
