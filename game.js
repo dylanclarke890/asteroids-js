@@ -154,8 +154,30 @@ class Player {
   }
 }
 
+class Asteroid {
+  constructor(x, y) {
+    const { asteroids, fps } = settings;
+    this.x = x;
+    this.y = y;
+    this.velocity = {
+      x:
+        ((Math.random() * asteroids.speed) / fps) *
+        (Math.random() > 0.5 ? 1 : -1),
+      y:
+        ((Math.random() * asteroids.speed) / fps) *
+        (Math.random() > 0.5 ? 1 : -1),
+      r: asteroids.size / 2,
+      a: Math.random() * Math.PI * 2, // angle in radians
+    };
+  }
+
+  update() {}
+  draw() {}
+}
+
 const state = {
   player: new Player(),
+  asteroids: [],
 };
 
 const FPS = 60;
@@ -165,6 +187,11 @@ const settings = {
   turnSpeed: 360, // degrees per second
   shipThrust: 5,
   friction: 0.7, // friction coefficient of space (between 0 and 1 generally).
+  asteroids: {
+    startingNum: 3,
+    speed: 50, // max starting speed of asteroids in pixels per second
+    size: 100,
+  },
 };
 
 window.addEventListener("keydown", keyDown);
@@ -202,9 +229,22 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
   }
 }
 
+(function createAsteroidBelt() {
+  const { startingNum } = settings.asteroids;
+  for (let i = 0; i < startingNum; i++) {
+    const x = Math.floor(Math.random() * canvas.width);
+    const y = Math.floor(Math.random() * canvas.height);
+    state.asteroids.push(new Asteroid(x, y));
+  }
+})();
+
 function handleObjects() {
   state.player.update();
   state.player.draw();
+  for (let i = 0; i < state.asteroids.length; i++) {
+    state.asteroids[i].update();
+    state.asteroids[i].draw();
+  }
 }
 
 function update() {
