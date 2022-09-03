@@ -73,6 +73,7 @@ const settings = {
   lasers: {
     speed: 500, // pixels per second
     maxAtOnce: 8,
+    travelDistance: 0.6, // max travel distance in fractions of screen width
   },
   asteroids: {
     startingNum: 3,
@@ -101,20 +102,33 @@ class Laser {
     this.x = x;
     this.y = y;
     this.velocity = velocity;
-    this.w = 5;
-    this.h = 20;
+    this.r = 5;
+    this.travelled = 0;
+    this.destroy = false;
   }
 
   draw() {
     ctx.fillStyle = "salmon";
     ctx.beginPath();
-    ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
     ctx.fill();
     ctx.closePath();
   }
+
   update() {
     this.x += this.velocity.x;
-    this.y -= this.velocity.y;
+    this.y += this.velocity.y;
+
+    this.travelled += Math.sqrt(
+      Math.pow(this.velocity.x, 2) + Math.pow(this.velocity.y, 2)
+    );
+    if (this.travelled > settings.lasers.travelDistance * canvas.width)
+      this.destroy = true;
+
+    if (this.x < 0) this.x = canvas.width;
+    else if (this.x > canvas.width) this.x = 0;
+    if (this.y < 0) this.y = canvas.height;
+    else if (this.y > canvas.height) this.y = 0;
   }
 }
 
@@ -140,7 +154,7 @@ class Player {
   }
 
   update() {
-    const { fps, ship, lasers } = settings;
+    const { fps, ship } = settings;
     const { thrust, friction } = ship;
     const exploding = this.explodeTime > 0;
 
@@ -329,7 +343,7 @@ class Player {
         this.y - (4 / 3) * this.r * sinA,
         {
           x: (speed * cosA) / settings.fps,
-          y: (speed * sinA) / settings.fps,
+          y: (-speed * sinA) / settings.fps,
         }
       )
     );
@@ -495,9 +509,14 @@ function handleObjects() {
   }
 }
 
+function handleCleanup() {
+  state.player.lasers = state.player.lasers.filter((val) => !val.destroy);
+}
+
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   handleObjects();
+  handleCleanup();
 }
 
 let stop = false,
