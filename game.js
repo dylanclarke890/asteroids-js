@@ -97,7 +97,7 @@ const settings = {
 };
 
 class Sound {
-  constructor(src, maxStreams = 2, vol = 0.5) {
+  constructor(src, maxStreams = 5, vol = 0.5) {
     this.streamNum = 0;
     this.streams = [];
     for (let i = 0; i < maxStreams; i++) {
@@ -115,6 +115,7 @@ class Sound {
 
 const fx = {
   laser: new Sound("sounds/laser.m4a"),
+  explode: new Sound("sounds/explode.m4a"),
 };
 
 const setMousePosition = (e) => {
@@ -390,6 +391,7 @@ class Player {
   explode() {
     const { fps, ship } = settings;
     this.explodeTime = Math.ceil(ship.explodeDuration * fps);
+    fx.explode.play();
   }
 
   reset() {
