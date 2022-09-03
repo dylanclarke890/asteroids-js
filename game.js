@@ -121,6 +121,34 @@ class Sound {
   }
 }
 
+class Music {
+  constructor(srcLow, srcHigh) {
+    this.soundLow = new Audio(srcLow);
+    this.soundHigh = new Audio(srcHigh);
+    this.low = true;
+    this.tempo = 1.0; // secs per beat
+    this.beatTime = Math.ceil(this.tempo * settings.fps); // frames left until next beat
+  }
+
+  play() {
+    if (state.muted) return;
+    if (this.low) this.soundLow.play();
+    else this.soundHigh.play();
+    this.low = !this.low;
+  }
+
+  tick() {
+    if (this.beatTime === 0) {
+      this.play();
+      this.beatTime = Math.ceil(this.tempo * settings.fps);
+    } else this.beatTime--;
+  }
+
+  setTempo(ratio) {
+    this.tempo = 1 - 0.75 * (1.0 - ratio);
+  }
+}
+
 const fx = {
   laser: new Sound("sounds/laser.m4a"),
   explode: new Sound("sounds/explode.m4a"),
@@ -541,6 +569,10 @@ class Asteroid {
       state.score += med;
     } else state.score += sm;
     checkForHighScore();
+    state.asteroidsLeft--;
+    state.music.setTempo(
+      state.asteroidsLeft === 0 ? 1 : state.asteroidsLeft / state.totalAsteroids
+    );
   }
 }
 
@@ -593,6 +625,8 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
 
 function createAsteroidBelt() {
   const { startingNum, size } = settings.asteroids;
+  state.totalAsteroids = (startingNum + state.level) * 7;
+  state.asteroidsLeft = state.totalAsteroids;
   let x, y;
   for (let i = 0; i < startingNum + state.level; i++) {
     do {
@@ -623,6 +657,9 @@ function newGame() {
     score: 0,
     highScore: high ? parseInt(high) : 0,
     muted: muted ? true : false,
+    music: new Music("sounds/music-low.m4a", "sounds/music-high.m4a"),
+    totalAsteroids: 0,
+    asteroidsLeft: 0,
   };
 
   newLevel();
@@ -677,6 +714,8 @@ function handleObjects() {
   ctx.fillStyle = `white`;
   ctx.font = `${settings.text.size}px dejavu sans mono`;
   ctx.fillText(`High Score: ${state.highScore}`, canvas.width / 2, 40);
+
+  state.music.tick();
 }
 
 function handleCleanup() {
