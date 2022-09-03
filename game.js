@@ -401,12 +401,13 @@ class Asteroid {
     const { asteroids, fps } = settings;
     this.x = x;
     this.y = y;
+    this.lvlMult = 1 + 0.1 * state.level;
     this.velocity = {
       x:
-        ((Math.random() * asteroids.speed) / fps) *
+        ((Math.random() * asteroids.speed * this.lvlMult) / fps) *
         (Math.random() > 0.5 ? 1 : -1),
       y:
-        ((Math.random() * asteroids.speed) / fps) *
+        ((Math.random() * asteroids.speed * this.lvlMult) / fps) *
         (Math.random() > 0.5 ? 1 : -1),
     };
     this.r = r;
@@ -488,10 +489,7 @@ class Asteroid {
   }
 }
 
-const state = {
-  player: new Player(),
-  asteroids: [],
-};
+let state;
 
 window.addEventListener("keydown", keyDown);
 window.addEventListener("keyup", keyUp);
@@ -534,10 +532,24 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
   }
 }
 
-(function createAsteroidBelt() {
+(function newGame() {
+  state = {
+    player: new Player(),
+    asteroids: [],
+    level: 0,
+  };
+
+  newLevel();
+})();
+
+function newLevel() {
+  createAsteroidBelt();
+}
+
+function createAsteroidBelt() {
   const { startingNum, size } = settings.asteroids;
   let x, y;
-  for (let i = 0; i < startingNum; i++) {
+  for (let i = 0; i < startingNum + state.level; i++) {
     do {
       x = Math.floor(Math.random() * canvas.width);
       y = Math.floor(Math.random() * canvas.height);
@@ -547,7 +559,7 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
     );
     state.asteroids.push(new Asteroid(x, y, Math.ceil(size / 2)));
   }
-})();
+};
 
 function distanceBetweenPoints(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -573,11 +585,19 @@ function handleCleanup() {
   state.asteroids = state.asteroids.filter((val) => !val.destroyed);
 }
 
+function checkForLvlWin() {
+  if (state.asteroids.length === 0) {
+    state.level++;
+    newLevel();
+  }
+}
+
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   handleObjects();
   handleCleanup();
-}
+  checkForLvlWin();
+};
 
 let stop = false,
   now,
