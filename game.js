@@ -74,6 +74,7 @@ const settings = {
     speed: 500, // pixels per second
     maxAtOnce: 8,
     travelDistance: 0.6, // max travel distance in fractions of screen width
+    explodeDuration: 0.1, // in seconds
   },
   asteroids: {
     startingNum: 3,
@@ -105,17 +106,44 @@ class Laser {
     this.r = 5;
     this.travelled = 0;
     this.destroyed = false;
+    this.explodeTime = 0;
   }
 
   draw() {
-    ctx.fillStyle = "salmon";
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.closePath();
+    if (this.explodeTime === 0) {
+      ctx.fillStyle = "salmon";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "orangered";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, state.player.r * 0.75, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "salmon";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, state.player.r * 0.5, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "pink";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, state.player.r * 0.25, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 
   update() {
+    if (this.explodeTime > 0) {
+      this.explodeTime--;
+      if (this.explodeTime === 0) this.destroyed = true;
+      return;
+    }
+
     this.x += this.velocity.x;
     this.y += this.velocity.y;
 
@@ -137,7 +165,9 @@ class Laser {
 
       if (distanceBetweenPoints(this.x, this.y, x, y) < r) {
         state.asteroids[i].destroy();
-        this.destroyed = true;
+        this.explodeTime = Math.ceil(
+          settings.lasers.explodeDuration * settings.fps
+        );
         break;
       }
     }
