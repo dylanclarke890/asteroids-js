@@ -96,6 +96,10 @@ const settings = {
   storageKey: "highScore",
 };
 
+const fx = {
+  laser: new Audio("sounds/laser.m4a"),
+};
+
 const setMousePosition = (e) => {
   mouse.x = e.x - (canvasPosition.left + 6);
   mouse.y = e.y - canvasPosition.top;
