@@ -83,6 +83,11 @@ const settings = {
     vert: 10,
     jag: 0.4, // jaggedness of the asteroids (0 - 1).
   },
+  text: {
+    fadeTime: 2.5, // in seconds
+    size: 40, // font size
+  },
+  livesPerGame: 3,
 };
 
 const setMousePosition = (e) => {
@@ -172,6 +177,22 @@ class Laser {
       }
     }
   }
+}
+
+function drawShip(x, y, a, r) {
+  const cosA = Math.cos(a);
+  const sinA = Math.sin(a);
+  ctx.strokeStyle = "grey";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  // nose of the ship
+  ctx.moveTo(x + (4 / 3) * r * cosA, y - (4 / 3) * r * sinA);
+  // rear left
+  ctx.lineTo(x - r * ((2 / 3) * cosA + sinA), y + r * ((2 / 3) * sinA - cosA));
+  // rear right
+  ctx.lineTo(x - r * ((2 / 3) * cosA - sinA), y + r * ((2 / 3) * sinA + cosA));
+  ctx.closePath();
+  ctx.stroke();
 }
 
 class Player {
@@ -314,26 +335,7 @@ class Player {
     }
 
     if (blinkOn) {
-      ctx.strokeStyle = "grey";
-      ctx.lineWidth = this.w / 10;
-      ctx.beginPath();
-      ctx.moveTo(
-        // nose of the ship
-        this.x + (4 / 3) * this.r * cosA,
-        this.y - (4 / 3) * this.r * sinA
-      );
-      ctx.lineTo(
-        // rear left
-        this.x - this.r * ((2 / 3) * cosA + sinA),
-        this.y + this.r * ((2 / 3) * sinA - cosA)
-      );
-      ctx.lineTo(
-        // rear right
-        this.x - this.r * ((2 / 3) * cosA - sinA),
-        this.y + this.r * ((2 / 3) * sinA + cosA)
-      );
-      ctx.closePath();
-      ctx.stroke();
+      drawShip(this.x, this.y, this.a, this.r);
     }
 
     const { showCenterDot, showCollisionBounding } = settings.devMode;
@@ -355,6 +357,7 @@ class Player {
   explode() {
     const { fps, ship } = settings;
     this.explodeTime = Math.ceil(ship.explodeDuration * fps);
+    state.lives--;
   }
 
   reset() {
@@ -537,6 +540,9 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
     player: new Player(),
     asteroids: [],
     level: 0,
+    lives: settings.livesPerGame,
+    text: "",
+    textAlpha: 1.0,
   };
 
   newLevel();
@@ -544,6 +550,8 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
 
 function newLevel() {
   createAsteroidBelt();
+  state.text = `Level ${state.level + 1}`;
+  state.textAlpha = 1.0;
 }
 
 function createAsteroidBelt() {
@@ -559,7 +567,7 @@ function createAsteroidBelt() {
     );
     state.asteroids.push(new Asteroid(x, y, Math.ceil(size / 2)));
   }
-};
+}
 
 function distanceBetweenPoints(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -577,6 +585,25 @@ function handleObjects() {
   for (let i = 0; i < state.asteroids.length; i++) {
     state.asteroids[i].update();
     state.asteroids[i].draw();
+  }
+
+  if (state.textAlpha > 0) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = `rgba(255, 255, 255, ${state.textAlpha})`;
+    ctx.font = `small-caps ${settings.text.size}px dejavu sans mono`;
+    ctx.fillText(state.text, canvas.width / 2, 100);
+    state.textAlpha -= 1.0 / settings.text.fadeTime / settings.fps;
+  }
+
+  const livesPos = {
+    x: 40,
+    y: 40,
+    a: (90 / 180) * Math.PI,
+    r: 20,
+  };
+  for (let i = 0; i < state.lives; i++) {
+    drawShip(livesPos.x, livesPos.y, livesPos.a, livesPos.r);
+    livesPos.x += 50;
   }
 }
 
