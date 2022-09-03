@@ -82,12 +82,18 @@ const settings = {
     size: 100,
     vert: 10,
     jag: 0.4, // jaggedness of the asteroids (0 - 1).
+    points: {
+      lg: 20,
+      med: 50,
+      sm: 100,
+    },
   },
   text: {
     fadeTime: 2.5, // in seconds
     size: 40, // font size
   },
   livesPerGame: 3,
+  storageKey: "highScore",
 };
 
 const setMousePosition = (e) => {
@@ -487,13 +493,17 @@ class Asteroid {
   destroy() {
     this.destroyed = true;
     const size = settings.asteroids.size;
+    const { lg, med, sm } = settings.asteroids.points;
     if (this.r === Math.ceil(size / 2)) {
       state.asteroids.push(new Asteroid(this.x, this.y, size / 4));
       state.asteroids.push(new Asteroid(this.x, this.y, size / 4));
+      state.score += lg;
     } else if (this.r === Math.ceil(size / 4)) {
       state.asteroids.push(new Asteroid(this.x, this.y, size / 8));
       state.asteroids.push(new Asteroid(this.x, this.y, size / 8));
-    }
+      state.score += med;
+    } else state.score += sm;
+    checkForHighScore();
   }
 }
 
@@ -560,6 +570,7 @@ function distanceBetweenPoints(x1, y1, x2, y2) {
 }
 
 function newGame() {
+  const high = localStorage.getItem(settings.storageKey);
   state = {
     player: new Player(),
     asteroids: [],
@@ -567,6 +578,8 @@ function newGame() {
     lives: settings.livesPerGame,
     text: "",
     textAlpha: 1.0,
+    score: 0,
+    highScore: high ? parseInt(high) : 0,
   };
 
   newLevel();
@@ -611,6 +624,16 @@ function handleObjects() {
     drawShip(livesPos.x, livesPos.y, livesPos.a, livesPos.r, lifeColour);
     livesPos.x += 50;
   }
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = `white`;
+  ctx.font = `${settings.text.size}px dejavu sans mono`;
+  ctx.fillText(state.score, canvas.width - 20, 40);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = `white`;
+  ctx.font = `${settings.text.size}px dejavu sans mono`;
+  ctx.fillText(`High Score: ${state.highScore}`, canvas.width / 2, 40);
 }
 
 function handleCleanup() {
@@ -622,6 +645,13 @@ function checkForLvlWin() {
   if (state.asteroids.length === 0) {
     state.level++;
     newLevel();
+  }
+}
+
+function checkForHighScore() {
+  if (state.highScore < state.score) {
+    state.highScore = state.score;
+    localStorage.setItem(settings.storageKey, state.highScore);
   }
 }
 
