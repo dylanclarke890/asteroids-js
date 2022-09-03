@@ -100,7 +100,7 @@ const settings = {
 };
 
 class Sound {
-  constructor(src, maxStreams = 3, vol = 0.5) {
+  constructor(src, maxStreams = 1, vol = 0.5) {
     this.streamNum = 0;
     this.streams = [];
     for (let i = 0; i < maxStreams; i++) {
@@ -114,12 +114,18 @@ class Sound {
     this.streamNum = (this.streamNum + 1) % this.streams.length;
     this.streams[this.streamNum].play();
   }
+
+  stop() {
+    this.streams[this.streamNum].pause();
+    this.streams[this.streamNum].currentTime = 0;
+  }
 }
 
 const fx = {
   laser: new Sound("sounds/laser.m4a"),
   explode: new Sound("sounds/explode.m4a"),
   hit: new Sound("sounds/hit.m4a", 10),
+  thrust: new Sound("sounds/thrust.m4a"),
 };
 
 const setMousePosition = (e) => {
@@ -260,9 +266,11 @@ class Player {
       if (this.thrusting) {
         this.thrust.x += (thrust * Math.cos(this.a)) / fps;
         this.thrust.y -= (thrust * Math.sin(this.a)) / fps;
+        fx.thrust.play();
       } else {
         this.thrust.x -= (friction * this.thrust.x) / fps;
         this.thrust.y -= (friction * this.thrust.y) / fps;
+        fx.thrust.stop();
       }
       this.x += this.thrust.x;
       this.y += this.thrust.y;
