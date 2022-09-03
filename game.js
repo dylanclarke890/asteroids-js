@@ -104,7 +104,7 @@ class Laser {
     this.velocity = velocity;
     this.r = 5;
     this.travelled = 0;
-    this.destroy = false;
+    this.destroyed = false;
   }
 
   draw() {
@@ -123,7 +123,7 @@ class Laser {
       Math.pow(this.velocity.x, 2) + Math.pow(this.velocity.y, 2)
     );
     if (this.travelled > settings.lasers.travelDistance * canvas.width)
-      this.destroy = true;
+      this.destroyed = true;
 
     if (this.x < 0) this.x = canvas.width;
     else if (this.x > canvas.width) this.x = 0;
@@ -136,8 +136,8 @@ class Laser {
       let r = state.asteroids[i].r;
 
       if (distanceBetweenPoints(this.x, this.y, x, y) < r) {
-        state.asteroids[i].destroy = true;
-        this.destroy = true;
+        state.asteroids[i].destroy();
+        this.destroyed = true;
         break;
       }
     }
@@ -192,8 +192,11 @@ class Player {
               state.asteroids[i].y
             ) <
             this.r + state.asteroids[i].r
-          )
+          ) {
             this.explode();
+            state.asteroids[i].destroy();
+            break;
+          }
         }
       }
     } else {
@@ -364,7 +367,7 @@ class Player {
 }
 
 class Asteroid {
-  constructor(x, y) {
+  constructor(x, y, r) {
     const { asteroids, fps } = settings;
     this.x = x;
     this.y = y;
@@ -376,7 +379,7 @@ class Asteroid {
         ((Math.random() * asteroids.speed) / fps) *
         (Math.random() > 0.5 ? 1 : -1),
     };
-    this.r = asteroids.size / 2;
+    this.r = r;
     this.a = Math.random() * Math.PI * 2; // angle in radians
     this.vert = Math.floor(
       Math.random() * (asteroids.vert + 1) + asteroids.vert / 2
@@ -387,7 +390,7 @@ class Asteroid {
         Math.random() * asteroids.jag * 2 + 1 - asteroids.jag
       );
     }
-    this.destroy = false;
+    this.destroyed = false;
   }
 
   update() {
@@ -399,6 +402,7 @@ class Asteroid {
     if (this.y < 0 - this.r) this.y = canvas.height + this.r;
     else if (this.y > canvas.height + this.r) this.y = 0 - this.r;
   }
+
   draw() {
     ctx.closePath;
     ctx.strokeStyle = "slategrey";
@@ -438,6 +442,18 @@ class Asteroid {
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, false);
       ctx.closePath();
       ctx.stroke();
+    }
+  }
+
+  destroy() {
+    this.destroyed = true;
+    const size = settings.asteroids.size;
+    if (this.r === Math.ceil(size / 2)) {
+      state.asteroids.push(new Asteroid(this.x, this.y, size / 4));
+      state.asteroids.push(new Asteroid(this.x, this.y, size / 4));
+    } else if (this.r === Math.ceil(size / 4)) {
+      state.asteroids.push(new Asteroid(this.x, this.y, size / 8));
+      state.asteroids.push(new Asteroid(this.x, this.y, size / 8));
     }
   }
 }
@@ -499,7 +515,7 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
       distanceBetweenPoints(state.player.x, state.player.y, x, y) <
       size * 2 + state.player.r
     );
-    state.asteroids.push(new Asteroid(x, y));
+    state.asteroids.push(new Asteroid(x, y, Math.ceil(size / 2)));
   }
 })();
 
@@ -523,8 +539,8 @@ function handleObjects() {
 }
 
 function handleCleanup() {
-  state.player.lasers = state.player.lasers.filter((val) => !val.destroy);
-  state.asteroids = state.asteroids.filter((val) => !val.destroy);
+  state.player.lasers = state.player.lasers.filter((val) => !val.destroyed);
+  state.asteroids = state.asteroids.filter((val) => !val.destroyed);
 }
 
 function update() {
