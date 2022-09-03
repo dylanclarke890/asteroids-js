@@ -129,6 +129,18 @@ class Laser {
     else if (this.x > canvas.width) this.x = 0;
     if (this.y < 0) this.y = canvas.height;
     else if (this.y > canvas.height) this.y = 0;
+
+    for (let i = 0; i < state.asteroids.length; i++) {
+      let x = state.asteroids[i].x;
+      let y = state.asteroids[i].y;
+      let r = state.asteroids[i].r;
+
+      if (distanceBetweenPoints(this.x, this.y, x, y) < r) {
+        state.asteroids[i].destroy = true;
+        this.destroy = true;
+        break;
+      }
+    }
   }
 }
 
@@ -375,6 +387,7 @@ class Asteroid {
         Math.random() * asteroids.jag * 2 + 1 - asteroids.jag
       );
     }
+    this.destroy = false;
   }
 
   update() {
@@ -511,6 +524,7 @@ function handleObjects() {
 
 function handleCleanup() {
   state.player.lasers = state.player.lasers.filter((val) => !val.destroy);
+  state.asteroids = state.asteroids.filter((val) => !val.destroy);
 }
 
 function update() {
