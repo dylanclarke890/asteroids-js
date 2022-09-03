@@ -125,13 +125,14 @@ class Music {
   constructor(srcLow, srcHigh) {
     this.soundLow = new Audio(srcLow);
     this.soundHigh = new Audio(srcHigh);
+    this.soundLow.volume = 0.4;
+    this.soundHigh.volume = 0.4;
     this.low = true;
     this.tempo = 1.0; // secs per beat
     this.beatTime = Math.ceil(this.tempo * settings.fps); // frames left until next beat
   }
 
   play() {
-    if (state.muted) return;
     if (this.low) this.soundLow.play();
     else this.soundHigh.play();
     this.low = !this.low;
@@ -139,7 +140,7 @@ class Music {
 
   tick() {
     if (this.beatTime === 0) {
-      this.play();
+      if (!state.muted) this.play();
       this.beatTime = Math.ceil(this.tempo * settings.fps);
     } else this.beatTime--;
   }
@@ -597,8 +598,8 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
       state.player.shootLaser();
       break;
     case "keym":
-      localStorage.setItem(settings.storageKeys.muted, !state.muted);
       state.muted = !state.muted;
+      localStorage.setItem(settings.storageKeys.muted, state.muted);
       break;
     default:
       break;
@@ -646,7 +647,7 @@ function distanceBetweenPoints(x1, y1, x2, y2) {
 
 function newGame() {
   const high = localStorage.getItem(settings.storageKeys.highScore);
-  const muted = localStorage.getItem(settings.storageKeys.muted);
+  const isMuted = localStorage.getItem(settings.storageKeys.muted);
   state = {
     player: new Player(),
     asteroids: [],
@@ -656,7 +657,7 @@ function newGame() {
     textAlpha: 1.0,
     score: 0,
     highScore: high ? parseInt(high) : 0,
-    muted: muted ? true : false,
+    muted: isMuted === "true",
     music: new Music("sounds/music-low.m4a", "sounds/music-high.m4a"),
     totalAsteroids: 0,
     asteroidsLeft: 0,
@@ -733,7 +734,7 @@ function checkForLvlWin() {
 function checkForHighScore() {
   if (state.highScore < state.score) {
     state.highScore = state.score;
-    localStorage.setItem(settings.storageKeys, state.highScore);
+    localStorage.setItem(settings.storageKeys.highScore, state.highScore);
   }
 }
 
@@ -748,7 +749,6 @@ function gameOver() {
   state.text = "Game Over";
   state.textAlpha = 1.0;
 }
-
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   handleObjects();
