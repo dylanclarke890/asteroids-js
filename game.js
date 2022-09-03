@@ -93,11 +93,14 @@ const settings = {
     size: 40, // font size
   },
   livesPerGame: 3,
-  storageKey: "highScore",
+  storageKeys: {
+    highScore: "highScore",
+    muted: "muted",
+  },
 };
 
 class Sound {
-  constructor(src, maxStreams = 5, vol = 0.5) {
+  constructor(src, maxStreams = 3, vol = 0.5) {
     this.streamNum = 0;
     this.streams = [];
     for (let i = 0; i < maxStreams; i++) {
@@ -107,8 +110,8 @@ class Sound {
   }
 
   play() {
+    if (state.muted) return;
     this.streamNum = (this.streamNum + 1) % this.streams.length;
-    console.log(this.streamNum);
     this.streams[this.streamNum].play();
   }
 }
@@ -116,6 +119,7 @@ class Sound {
 const fx = {
   laser: new Sound("sounds/laser.m4a"),
   explode: new Sound("sounds/explode.m4a"),
+  hit: new Sound("sounds/hit.m4a", 10),
 };
 
 const setMousePosition = (e) => {
@@ -198,6 +202,7 @@ class Laser {
 
       if (distanceBetweenPoints(this.x, this.y, x, y) < r) {
         state.asteroids[i].destroy();
+        fx.hit.play();
         this.explodeTime = Math.ceil(
           settings.lasers.explodeDuration * settings.fps
         );
@@ -551,6 +556,10 @@ function keyDown(/** @type {KeyboardEvent} */ ev) {
     case "space":
       state.player.shootLaser();
       break;
+    case "keym":
+      localStorage.setItem(settings.storageKeys.muted, !state.muted);
+      state.muted = !state.muted;
+      break;
     default:
       break;
   }
@@ -594,7 +603,8 @@ function distanceBetweenPoints(x1, y1, x2, y2) {
 }
 
 function newGame() {
-  const high = localStorage.getItem(settings.storageKey);
+  const high = localStorage.getItem(settings.storageKeys.highScore);
+  const muted = localStorage.getItem(settings.storageKeys.muted);
   state = {
     player: new Player(),
     asteroids: [],
@@ -604,6 +614,7 @@ function newGame() {
     textAlpha: 1.0,
     score: 0,
     highScore: high ? parseInt(high) : 0,
+    muted: muted ? true : false,
   };
 
   newLevel();
@@ -675,7 +686,7 @@ function checkForLvlWin() {
 function checkForHighScore() {
   if (state.highScore < state.score) {
     state.highScore = state.score;
-    localStorage.setItem(settings.storageKey, state.highScore);
+    localStorage.setItem(settings.storageKeys, state.highScore);
   }
 }
 
