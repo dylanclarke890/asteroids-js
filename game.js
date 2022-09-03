@@ -179,10 +179,10 @@ class Laser {
   }
 }
 
-function drawShip(x, y, a, r) {
+function drawShip(x, y, a, r, color = "grey") {
   const cosA = Math.cos(a);
   const sinA = Math.sin(a);
-  ctx.strokeStyle = "grey";
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.beginPath();
   // nose of the ship
@@ -214,6 +214,7 @@ class Player {
     this.blinkTime = Math.ceil(ship.blinkDuration * fps);
     this.canShoot = true;
     this.lasers = [];
+    this.destroyed = false;
   }
 
   update() {
@@ -252,7 +253,12 @@ class Player {
       }
     } else {
       this.explodeTime--;
-      if (this.explodeTime === 0) this.reset();
+      if (this.explodeTime === 0) {
+        state.lives--;
+        if (state.lives === 0) {
+          gameOver();
+        } else this.reset();
+      }
     }
 
     if (this.x < 0 - this.r) this.x = canvas.width + this.r;
@@ -357,7 +363,6 @@ class Player {
   explode() {
     const { fps, ship } = settings;
     this.explodeTime = Math.ceil(ship.explodeDuration * fps);
-    state.lives--;
   }
 
   reset() {
@@ -535,25 +540,6 @@ function keyUp(/** @type {KeyboardEvent} */ ev) {
   }
 }
 
-(function newGame() {
-  state = {
-    player: new Player(),
-    asteroids: [],
-    level: 0,
-    lives: settings.livesPerGame,
-    text: "",
-    textAlpha: 1.0,
-  };
-
-  newLevel();
-})();
-
-function newLevel() {
-  createAsteroidBelt();
-  state.text = `Level ${state.level + 1}`;
-  state.textAlpha = 1.0;
-}
-
 function createAsteroidBelt() {
   const { startingNum, size } = settings.asteroids;
   let x, y;
@@ -573,13 +559,28 @@ function distanceBetweenPoints(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
 
-function handleObjects() {
-  state.player.update();
-  state.player.draw();
+function newGame() {
+  state = {
+    player: new Player(),
+    asteroids: [],
+    level: 0,
+    lives: settings.livesPerGame,
+    text: "",
+    textAlpha: 1.0,
+  };
 
-  for (let i = 0; i < state.player.lasers.length; i++) {
-    state.player.lasers[i].update();
-    state.player.lasers[i].draw();
+  newLevel();
+}
+
+function handleObjects() {
+  if (!state.player.destroyed) {
+    state.player.update();
+    state.player.draw();
+
+    for (let i = 0; i < state.player.lasers.length; i++) {
+      state.player.lasers[i].update();
+      state.player.lasers[i].draw();
+    }
   }
 
   for (let i = 0; i < state.asteroids.length; i++) {
@@ -593,6 +594,8 @@ function handleObjects() {
     ctx.font = `small-caps ${settings.text.size}px dejavu sans mono`;
     ctx.fillText(state.text, canvas.width / 2, 100);
     state.textAlpha -= 1.0 / settings.text.fadeTime / settings.fps;
+  } else if (state.player.destroyed) {
+    newGame();
   }
 
   const livesPos = {
@@ -601,8 +604,11 @@ function handleObjects() {
     a: (90 / 180) * Math.PI,
     r: 20,
   };
+
   for (let i = 0; i < state.lives; i++) {
-    drawShip(livesPos.x, livesPos.y, livesPos.a, livesPos.r);
+    let lifeColour =
+      state.player.explodeTime > 0 && i === state.lives - 1 ? "red" : "white";
+    drawShip(livesPos.x, livesPos.y, livesPos.a, livesPos.r, lifeColour);
     livesPos.x += 50;
   }
 }
@@ -619,18 +625,31 @@ function checkForLvlWin() {
   }
 }
 
+function newLevel() {
+  createAsteroidBelt();
+  state.text = `Level ${state.level + 1}`;
+  state.textAlpha = 1.0;
+}
+
+function gameOver() {
+  state.player.destroyed = true;
+  state.text = "Game Over";
+  state.textAlpha = 1.0;
+}
+
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   handleObjects();
   handleCleanup();
   checkForLvlWin();
-};
+}
 
 let stop = false,
   now,
   lastFrame;
 
 (function startAnimating() {
+  newGame();
   lastFrame = window.performance.now();
   animate();
 })();
