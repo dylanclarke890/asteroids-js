@@ -96,8 +96,25 @@ const settings = {
   storageKey: "highScore",
 };
 
+class Sound {
+  constructor(src, maxStreams = 2, vol = 0.5) {
+    this.streamNum = 0;
+    this.streams = [];
+    for (let i = 0; i < maxStreams; i++) {
+      this.streams.push(new Audio(src));
+      this.streams[i].volume = vol;
+    }
+  }
+
+  play() {
+    this.streamNum = (this.streamNum + 1) % this.streams.length;
+    console.log(this.streamNum);
+    this.streams[this.streamNum].play();
+  }
+}
+
 const fx = {
-  laser: new Audio("sounds/laser.m4a"),
+  laser: new Sound("sounds/laser.m4a"),
 };
 
 const setMousePosition = (e) => {
@@ -411,6 +428,7 @@ class Player {
       )
     );
     this.canShoot = false;
+    fx.laser.play();
   }
 }
 
